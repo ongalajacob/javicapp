@@ -136,9 +136,8 @@ def main():
 
 
     Infos="""
-    Welcome to Javic Junior  School. This application will be used to monitor the the financial 
-    management operations and academics of our students. For more information contact the director @
-    javicjun@javicjuniorschool.co.ke  or Manager @  vogendo@javicjuniorschool.co.ke
+    Welcome to Javic Junior  School. You can use this application to monitor your child's fee and academic records. 
+    For more information contact the director/Manager at 0710332465/0733332465/0710945685
     """
     st.markdown(Infos)
 
@@ -146,36 +145,44 @@ def main():
         ('My Child', 'General School Information'))
     if selection == 'My Child':
         Phone =st.text_input(label='Enter your phone Number registered at school')
-        if st.checkbox("Show Students Details"):
-            stud_df=stud_df[['ADM', 'name',  'Mother', 'Father', 'Guadian', 'DOB', 'sex',
-            'PHONE1', 'PHONE2', 'PHONE3', 'DOA']]
+        if Phone=="":
+            st.write('Enter your phone Number registered at school in the space above to continue')
+        if Phone !="":
+            st.write('These are the kids registered with the phone number provided')
+            stud_df=stud_df[['ADM', 'name',  'Mother', 'Father', 'Guadian', 'DOB', 'sex','PHONE1', 'PHONE2', 'PHONE3', 'DOA']]
             st.dataframe(stud_df[((stud_df.PHONE1==Phone)| (stud_df.PHONE2==Phone)|(stud_df.PHONE3==Phone))].T)
-        if st.checkbox("Show Account Status"):
-            fees_bal_df=fees_bal_df[((fees_bal_df.enrolstatus=='In_Session')&((fees_bal_df.phone1==Phone)| (fees_bal_df.phone2==Phone)|(fees_bal_df.phone3==Phone)))]
-            fees_bal_df.rename(columns = {'year':'Year', 'term':'Term', 'grade':'Class', 'adm':'ADM', 'name_stud':'Name', 'bal_bf':'Arrears(last term)', 'tot_invoice':'This term fees', 'total_collection':'Total paid this Term', 'bal_cf':'Balance'}, inplace = True)
-            fees_bal_df.drop(['id',"enrolstatus",'phone1','phone2','phone3'], axis=1, inplace=True)
+            st.markdown("<h5 style='text-align: center; color: blue;'>--------------------------------------------------------------------------------------------------------------------</h5>", unsafe_allow_html=True)
+            st.markdown("<h5 style='text-align: center; color: red;'>If you cant see one or more of your child, try entering your phone number without the starting zero e.g 710945685 OR contact the office to update your phone contacts</h5>", unsafe_allow_html=True)
+            st.markdown("<h5 style='text-align: center; color: blue;'>--------------------------------------------------------------------------------------------------------------------</h5>", unsafe_allow_html=True)
+            
+            
+            if st.checkbox("Show Account Status"):
+                fees_bal_df=fees_bal_df[((fees_bal_df.enrolstatus=='In_Session')&((fees_bal_df.phone1==Phone)| (fees_bal_df.phone2==Phone)|(fees_bal_df.phone3==Phone)))]
+                fees_bal_df.rename(columns = {'year':'Year', 'term':'Term', 'grade':'Class', 'adm':'ADM', 'name_stud':'Name', 'bal_bf':'Arrears', 'tot_invoice':'Fees', 'total_collection':'Paid', 'bal_cf':'Bal'}, inplace = True)
+                fees_bal_df.drop(['id',"enrolstatus",'phone1','phone2','phone3'], axis=1, inplace=True)
 
-            feesBal_select = st.radio( "How to view", ('All accounts Status records', 'Filter Account Status Records'))
-            if feesBal_select == 'All accounts Status records':
-                st.dataframe(fees_bal_df[['Year','Term','ADM', 'Name', 'Arrears(last term)', 'This term fees', 'Total paid this Term','Balance']])
-            if feesBal_select == 'Filter Account Status Records':
-                yr = st.slider("Select Year", min_value=2020, max_value=2030, value=2020, step=1)
-                tm = st.selectbox("Select Term",options=['Term 1' , 'Term 2', 'Term 3'])
-                ADM = st.number_input('Enter Admission Number:', value = 0)
-                st.dataframe(fees_bal_df[((fees_bal_df.Year==yr)&(fees_bal_df.Term==tm)&(fees_bal_df.ADM==ADM))][['ADM', 'Name', 'Arrears(last term)', 'This term fees', 'Total paid this Term','Balance']].T)
+                feesBal_select = st.radio( "How do you want to view account status", ('All accounts Status records', 'Filter Account Status Records by Year, Tearm and ADM'))
+                if feesBal_select == 'All accounts Status records':
+                    fees_bal_df = fees_bal_df.sort_values(['Year','Term','ADM'], ascending = (True, True,True))
+                    st.dataframe(fees_bal_df[['Year','Term','ADM', 'Name', 'Arrears', 'Fees', 'Paid','Bal']])
+                if feesBal_select == 'Filter Account Status Records by Year, Tearm and ADM':
+                    yr = st.slider("Select Year", min_value=2020, max_value=2030, value=2020, step=1)
+                    tm = st.selectbox("Select Term",options=['Term 1' , 'Term 2', 'Term 3'])
+                    ADM = st.number_input('Enter Admission Number: (You can check the admission mumber from the student details above)', value = 0)
+                    st.dataframe(fees_bal_df[((fees_bal_df.Year==yr)&(fees_bal_df.Term==tm)&(fees_bal_df.ADM==ADM))][['Year','Term','ADM', 'Name', 'Arrears', 'Fees', 'Paid','Bal']].T)
 
 
-        if st.checkbox("Show Fee Payment History"):
-            fees_df=fees_df[((fees_df.enrolstatus=='In_Session')&((fees_df.phone1==Phone)| (fees_df.phone2==Phone)|(fees_df.phone3==Phone)))]
-            fees_select = st.radio( "How to view", ('All fee payment records', 'Filter fee payments - (view by year, term,  adm)'))
-            if fees_select == 'All fee payment records':
-                st.dataframe(fees_df[['receiptno', 'dop', 'grade', 'adm', 'name_stud', 'total_paid']])
-            if fees_select == 'Filter fee payments - (view by year, term,  adm)':
-                yr = st.slider("Select Year", min_value=2020, max_value=2030, value=2020, step=1)
-                tm = st.selectbox("Select Term",options=['Term 1' , 'Term 2', 'Term 3'])
-                ADM = st.number_input('Enter Admission Number:', value = 0)
-                st.dataframe(fees_df[((fees_df.year==yr)&(fees_df.term==tm)&(fees_df.adm==ADM))][['receiptno', 'dop', 'grade', 'adm', 'name_stud', 'total_paid']])   
-        
+            if st.checkbox("Show Fee Payment History"):
+                fees_df=fees_df[((fees_df.enrolstatus=='In_Session')&((fees_df.phone1==Phone)| (fees_df.phone2==Phone)|(fees_df.phone3==Phone)))]
+                fees_select = st.radio( "How to view", ('All fee payment records', 'Filter fee payments - (view by year, term,  adm)'))
+                if fees_select == 'All fee payment records':
+                    st.dataframe(fees_df[['receiptno', 'dop', 'grade', 'adm', 'name_stud', 'total_paid']])
+                if fees_select == 'Filter fee payments - (view by year, term,  adm)':
+                    yr = st.slider("Select Year", min_value=2020, max_value=2030, value=2020, step=1)
+                    tm = st.selectbox("Select Term",options=['Term 1' , 'Term 2', 'Term 3'])
+                    ADM = st.number_input('Enter Admission Number:', value = 0)
+                    st.dataframe(fees_df[((fees_df.year==yr)&(fees_df.term==tm)&(fees_df.adm==ADM))][['receiptno', 'dop', 'grade', 'adm', 'name_stud', 'total_paid']])   
+            
 
         
     elif selection == 'General School Information':
