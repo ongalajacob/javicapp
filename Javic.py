@@ -86,7 +86,7 @@ def main():
     fee_df1=fee_df.groupby(["ClassRegisterID"])["total_paid"].sum().reset_index(name='Total_collection')
     fees_bal_df=pd.merge(left=fee_df1, right=Register_df, how='outer', left_on='ClassRegisterID', right_on='id')
     fees_bal_df.Total_collection=fees_bal_df.Total_collection.fillna(0)
-    fees_bal_df["bal_cf"] =fees_bal_df["tot_invoice"] - fees_bal_df["Total_collection"] 
+    fees_bal_df["bal_cf"] =fees_bal_df["tot_invoice"] +fees_bal_df["bal_bf"] - fees_bal_df["Total_collection"] 
     fees_bal_df=fees_bal_df[['id','year', 'term','grade',  'adm','name_stud','enrolstatus',  'bal_bf', 'tot_invoice', 'Total_collection','bal_cf' , 'phone1', 'phone2', 'phone3']]
     fees_bal_df = fees_bal_df.rename(columns=str.lower)
 
