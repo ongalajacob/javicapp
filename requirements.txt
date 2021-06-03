@@ -1,10 +1,6 @@
 streamlit
-matplotlib
+altair
 numpy
-seaborn
-cufflinks
-plotly
-scipy
-sklearn
-bokeh
+pandas
+
 

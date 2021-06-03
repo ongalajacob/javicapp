@@ -7,32 +7,21 @@ import streamlit as st
 import pandas as pd 
 import altair as alt
 import numpy as np
-import matplotlib.pyplot as plt
-import plotly.figure_factory as ff
-from bokeh.plotting import figure
+#import matplotlib.pyplot as plt
+#import plotly.figure_factory as ff
 
 import os
-import seaborn as sns
-import cufflinks as cf
+#import seaborn as sns
+#import cufflinks as cf
 import warnings
-import cufflinks as cf
-import plotly.express as px 
-import plotly.graph_objects as go
+#import cufflinks as cf
+#import plotly.express as px 
+#import plotly.graph_objects as go
 import requests
 import io  
 
-from plotly.subplots import make_subplots
-from scipy import stats
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.linear_model import ElasticNet
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import BaggingRegressor, AdaBoostRegressor, RandomForestRegressor
-from sklearn.model_selection import RandomizedSearchCV
-import pickle
-import warnings
 
+#import pickle
 
 ########################### Display text ###########################################
 
