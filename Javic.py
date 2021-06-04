@@ -90,13 +90,11 @@ def main():
     fees_bal_df=fees_bal_df[['id','year', 'term','grade',  'adm','name_stud','enrolstatus',  'bal_bf', 'tot_invoice', 'Total_collection','bal_cf' , 'phone1', 'phone2', 'phone3']]
     fees_bal_df = fees_bal_df.rename(columns=str.lower)
 
-
     exam_df=pd.merge(left=exams_df, right=Register_df, how='left', left_on='ClassRegisterID', right_on='id')
     exam_df.drop(["id_y",'ClassRegisterID'], axis=1, inplace=True)
     exam_df.rename(columns = {'id_x':'id', }, inplace = True)
-    exam_df=exam_df[['id', 'ExamType', 'year', 'term', 'grade','adm',   'name_stud', 'dob', 'sex','enrolstatus',  'Maths', 'EngLan', 'EngComp',
-        'KisLug', 'KisIns', 'Social', 'Creative', 'CRE', 'Science', 'HmScie',
-        'Agric', 'Music', 'PE']]
+    exam_df=exam_df[['id', 'ExamType', 'year', 'term', 'grade','adm',   'name_stud','enrolstatus',  'Maths', 'EngLan', 'EngComp',
+        'KisLug', 'KisIns', 'Social', 'Creative', 'CRE', 'Science', 'HmScie','Agric', 'Music', 'PE']]
     exam_df= exam_df.rename(columns=str.lower)
     subjects=['maths', 'englan', 'engcomp', 'kislug', 'kisins', 'social', 'creative',
         'cre', 'science', 'hmscie', 'agric', 'music', 'pe']
@@ -104,6 +102,7 @@ def main():
     exam_df=exam_df.dropna()
     exam_df['year'] = exam_df.year.astype(int) 
     exam_df['adm'] = exam_df.adm.astype(int)  
+    exam_df=exam_df[exam_df.enrolstatus =='In_Session']
         
     html_temp1 = """
     <div style="background-color:white;padding:1.5px">
@@ -172,6 +171,69 @@ def main():
                     ADM = st.number_input('Enter Admission Number:', value = 0)
                     st.dataframe(fees_df[((fees_df.year==yr)&(fees_df.term==tm)&(fees_df.adm==ADM))][['receiptno', 'dop', 'grade', 'adm', 'name_stud', 'total_paid']])   
             
+            if st.checkbox("Academic Statistics"):
+                #exam_df=exam_df.drop(['id','dob', 'sex'], axis=1).dropna()
+                yr = st.slider("Select Year", min_value=2020, max_value=2030, value=2020, step=1)
+                tm = st.selectbox("Select Term",options=['Term 1' , 'Term 2', 'Term 3'])
+                grd = st.selectbox("Select Grade",options=['Baby', 'PP1', 'PP2', 'Grade1', 'Grade2', 'Grade3', 'Grade4', 'Grade5'])
+                exam_df=exam_df[(exam_df.year==yr)& (exam_df.term ==tm) & (exam_df.grade==grd)]
+                exam_df=exam_df.groupby(['year', 'term', 'grade',"adm", 'name_stud'])['maths', 'englan', 'engcomp', 'kislug', 'kisins', 'social', 'creative', 'cre', 'science', 'hmscie', 'agric', 'music', 'pe','Tot_marks'].mean().reset_index().sort_values('Tot_marks', ascending = (False)) 
+                exam_df[['maths', 'englan', 'engcomp', 'kislug', 'kisins', 'social', 'creative', 'cre', 'science', 'hmscie', 'agric', 'music', 'pe','Tot_marks']] = exam_df[['maths', 'englan', 'engcomp', 'kislug', 'kisins', 'social', 'creative', 'cre', 'science', 'hmscie', 'agric', 'music', 'pe', 'Tot_marks']].astype(int)
+                exam_df=pd.merge(left=exam_df, right=stud_df[['ADM','PHONE1', 'PHONE2', 'PHONE3']], how='left', left_on='adm', right_on='ADM')
+                exam_df=exam_df.drop( 'ADM' , axis=1) 
+                exam_df= exam_df.rename(columns=str.lower)
+                
+                exam_df.rename(columns = {'year':'YEAR', 'term':'TERM', 'grade':'GRADE','adm':'ADM','name_stud':'NAME'}, inplace = True)
+                
+                if grd in ['Baby', 'PP1', 'PP2']:
+                    exam_df['pos'] =exam_df.tot_marks.rank(ascending=False).apply(np.floor).astype(int)
+                    exam_df=exam_df[((exam_df.phone1==Phone)| (exam_df.phone2==Phone)|(exam_df.phone3==Phone))]
+               
+                    exam_df.rename(columns = {'pos':'POSITION','maths':'Mathematics', 'englan':'Language', 'kislug':'Kiswahili',  'science':'Enviromental',  'cre':'Religious',  'creative':'Creative',   
+                    'tot_marks':'Total'}, inplace = True)
+                    if grd in ['Baby', 'PP1']:
+                        exam_df=exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION', 'Mathematics', 'Language', 'Creative', 'Religious', 'Enviromental', 'Total']]
+                        st.dataframe(exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION']] ) 
+                        st.dataframe(exam_df.drop(['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION'], axis=1 ).T) 
+
+                    else :
+                        exam_df=exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION', 'Mathematics', 'Language', 'Creative', 'Religious', 'Enviromental','Kiswahili', 'Total']]
+                        st.dataframe(exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION']] ) 
+                        st.dataframe(exam_df.drop(['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION'], axis=1 ).T) 
+
+                if grd in ['Grade1', 'Grade2', 'Grade3']:
+                    exam_df['pos'] =exam_df.tot_marks.rank(ascending=False).apply(np.floor).astype(int)
+                    exam_df=exam_df[((exam_df.phone1==Phone)| (exam_df.phone2==Phone)|(exam_df.phone3==Phone))]
+               
+                    exam_df['Kiswahili'] =exam_df['kislug']+exam_df['kisins'];exam_df['English'] =exam_df['englan']+exam_df['engcomp']
+                    exam_df.rename(columns = { 'pos':'POSITION','maths':'Mathematics',  'social':'Hygiene' ,'science':'Enviromental',  'cre':'CRE',  'creative':'Creative',   
+                    'tot_marks':'Total'}, inplace = True)
+                    exam_df=exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION', 'Mathematics', 'English','Kiswahili','Hygiene', 'Enviromental','CRE', 'Creative', 'Total']]
+                    st.dataframe(exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION']] ) 
+                    st.dataframe(exam_df.drop(['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION'], axis=1 ).T)   
+
+                    
+                if grd in ['Grade4']:
+                    exam_df['pos'] =exam_df.tot_marks.rank(ascending=False).apply(np.floor).astype(int)
+                    exam_df=exam_df[((exam_df.phone1==Phone)| (exam_df.phone2==Phone)|(exam_df.phone3==Phone))]
+               
+                    exam_df['Kiswahili'] =exam_df['kislug']+exam_df['kisins'];exam_df['English'] =exam_df['englan']+exam_df['engcomp']
+                    exam_df.rename(columns = {'pos':'POSITION','maths':'Mathematics',  'social':'S/Studies' ,'science':'Science',  'cre':'CRE',  'creative':'Art&Craft',   
+                    'hmscie':'H/Science', 'agric':'Agric', 'music':'Music', 'pe':'PE','tot_marks':'Total'}, inplace = True)
+                    exam_df=exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION', 'Mathematics', 'English','Kiswahili','Science','H/Science','Agric','Art&Craft', 'Music','S/Studies' ,'CRE', 'PE', 'Total']]
+                    st.dataframe(exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION']] ) 
+                    st.dataframe(exam_df.drop(['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION'], axis=1 ).T)
+
+                if grd in ['Grade5']:
+                    exam_df['pos'] =exam_df.tot_marks.rank(ascending=False).apply(np.floor).astype(int)
+                    exam_df=exam_df[((exam_df.phone1==Phone)| (exam_df.phone2==Phone)|(exam_df.phone3==Phone))]
+               
+                    exam_df['Kiswahili'] =exam_df['kislug']+exam_df['kisins'];exam_df['English'] =exam_df['englan']+exam_df['engcomp']
+                    exam_df.rename(columns = {'pos':'POSITION','maths':'Mathematics',  'social':'S/Studies' ,'science':'Science','tot_marks':'Total'}, inplace = True)
+                    exam_df=exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION', 'Mathematics', 'English','Kiswahili','Science','S/Studies' , 'Total']]
+                    st.dataframe(exam_df[['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION']] ) 
+                    st.dataframe(exam_df.drop(['YEAR', 'TERM', 'GRADE','ADM', 'NAME', 'POSITION'], axis=1 ).T)
+    
 
         
     elif selection == 'General School Information':
